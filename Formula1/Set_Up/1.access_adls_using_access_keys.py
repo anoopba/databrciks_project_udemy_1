@@ -7,4 +7,30 @@
 
 # COMMAND ----------
 
-dbutils.fs.ls("abfss://@")
+dbutils.secrets.help()
+
+# COMMAND ----------
+
+dbutils.secrets.listScopes()
+
+# COMMAND ----------
+
+dbutils.secrets.list(scope = "storage_access_key_databricks_ui")
+
+# COMMAND ----------
+
+access_key = dbutils.secrets.get(scope = "storage_access_key_databricks_ui",key = "storageaccesskey")
+
+# COMMAND ----------
+
+spark.conf.set(
+    "fs.azure.account.key.anoopdbstorageacc.dfs.core.windows.net",
+    dbutils.secrets.get(scope="storage_access_key_databricks_ui", key="storageaccesskey"))
+
+# COMMAND ----------
+
+df = spark.read.format('csv')\
+    .option("header","true")\
+    .load("abfss://demo@anoopdbstorageacc.dfs.core.windows.net/circuits.csv")
+
+display(df)
