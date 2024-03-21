@@ -39,6 +39,32 @@ client_id = dbutils.secrets.get(scope = "storage_access_key_databricks_ui", key 
 
 # COMMAND ----------
 
+#Instead of creating the dbutils.fs.mount again and again lets create a function where we can avoid the duplications 
+def mount_azure_folders(storage_account_name,container_name):
+    service_credential = dbutils.secrets.get(scope = "storage_access_key_databricks_ui", key = "ADBClientpasswordorvalue")
+    tenet_id = dbutils.secrets.get(scope = "storage_access_key_databricks_ui", key = "ADBtenetid")
+    client_id = dbutils.secrets.get(scope = "storage_access_key_databricks_ui", key = "ADBclientid")
+
+    configs = {"fs.azure.account.auth.type": "OAuth",
+          "fs.azure.account.oauth.provider.type": "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider",
+          "fs.azure.account.oauth2.client.id": client_id,
+          "fs.azure.account.oauth2.client.secret": service_credential,
+          "fs.azure.account.oauth2.client.endpoint": f"https://login.microsoftonline.com/{tenet_id}/oauth2/token"}
+    
+    # Optionally, you can add <directory-name> to the source URI of your mount point.
+    dbutils.fs.mount(
+    source = f"abfss://{container_name}@{storage_account_name}.dfs.core.windows.net/",
+    mount_point = "/mnt/azure_databricks_project_udemy/{container_name}",
+    extra_configs = configs)
+
+# COMMAND ----------
+
+mount_azure_folders(storage_account_name = "anoopdbstorageacc", container_name = "raw")
+mount_azure_folders(storage_account_name = "anoopdbstorageacc", container_name = "processed")
+mount_azure_folders(storage_account_name = "anoopdbstorageacc", container_name = "presentation")
+
+# COMMAND ----------
+
 configs = {"fs.azure.account.auth.type": "OAuth",
           "fs.azure.account.oauth.provider.type": "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider",
           "fs.azure.account.oauth2.client.id": client_id,
