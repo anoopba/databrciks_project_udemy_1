@@ -12,6 +12,25 @@
 
 # MAGIC %md
 # MAGIC
+# MAGIC ##### Running configuration_variables and configurations_functions Notebook to access the variables and functions dynamically
+
+# COMMAND ----------
+
+# MAGIC %run "../child_notebook/configuration_variables"
+
+# COMMAND ----------
+
+# MAGIC %run "../child_notebook/configuration_functions"
+
+# COMMAND ----------
+
+mnt_raw_folder_path
+
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
 # MAGIC ##### 1.1 Created StructType schema based on Inferschema and reading the circuits csv file.
 
 # COMMAND ----------
@@ -29,7 +48,7 @@ circuits_schema = StructType(fields=[StructField("circuitId",IntegerType(),False
 circuits_df = spark.read.format('csv').\
     option("header","true").\
         schema(circuits_schema).\
-        load("/mnt/azure_databricks_project_udemy/raw/circuits.csv")
+        load(f"{mnt_raw_folder_path}/circuits.csv")
 
 # COMMAND ----------
 
@@ -48,13 +67,13 @@ circuits_df = circuits_df.select(col("circuitId").alias("circuit_id"),col("circu
 
 # MAGIC %md 
 # MAGIC
-# MAGIC #### 1.3 Addition of new column ingested_date to circuits.csv
+# MAGIC #### 1.3 Addition of new column ingested_date to circuits.csv using ingestion_date_col_addition function from /child_notebook/configuration_functions notebook
 
 # COMMAND ----------
 
 from pyspark.sql.functions import current_timestamp
 
-circuits_final_df = circuits_df.withColumn("ingested_date",current_timestamp())
+circuits_final_df = ingestion_date_col_addition(circuits_df)
 
 # COMMAND ----------
 
@@ -64,10 +83,8 @@ circuits_final_df = circuits_df.withColumn("ingested_date",current_timestamp())
 
 # COMMAND ----------
 
-circuits_final_df.write.format("parquet").mode("overwrite").load('/mnt/')
+circuits_final_df.write.format("parquet").mode("overwrite").save('/mnt/azure_databricks_project_udemy/processed/circuits')
 
 # COMMAND ----------
 
-# MAGIC %fs
-# MAGIC
-# MAGIC ls /mnt
+display(spark.read.parquet('/mnt/azure_databricks_project_udemy/processed/circuits'))

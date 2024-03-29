@@ -35,6 +35,10 @@ display(drivers_df)
 
 # COMMAND ----------
 
+drivers_df.printSchema()
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC
 # MAGIC ### STEP 2: Rename Columns and Add New Columns
@@ -59,6 +63,12 @@ drivers_df = drivers_df.withColumnRenamed('driverId','driver_id').\
 # COMMAND ----------
 
 drivers_df = drivers_df.drop('name.forename','name.surname')
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
+# MAGIC #### STEP 4 : Write driver.json df data to parquet to processed folder
 
 # COMMAND ----------
 
