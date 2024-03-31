@@ -7,6 +7,25 @@
 
 # MAGIC %md
 # MAGIC
+# MAGIC #### STEP 0: Trying to Fetch ingestion_date_col_addition() and variables in configuration_variables
+
+# COMMAND ----------
+
+# MAGIC %run "../child_notebook/configuration_functions" 
+
+# COMMAND ----------
+
+# MAGIC %run "../child_notebook/configuration_variables"
+
+# COMMAND ----------
+
+dbutils.widgets.text("data_source_parameter","")
+data_source = dbutils.widgets.get("data_source_parameter")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
 # MAGIC #### STEP1 : Defining schema's for races csv and reading the races csv file and storing to a df
 
 # COMMAND ----------
@@ -22,7 +41,7 @@ schema = StructType(fields=[StructField("raceId",IntegerType(),False),StructFiel
 races_df = spark.read.format('csv').\
     option('header','true').\
         schema(schema).\
-            load('/mnt/azure_databricks_project_udemy/raw/races.csv')
+            load(f'{mnt_raw_folder_path}/races.csv')
 
 # COMMAND ----------
 
@@ -48,8 +67,9 @@ races_df = races_df.select(col('raceId').alias('race_id'),col('year').alias('rac
 
 from pyspark.sql.functions import col,date_format,lit,to_timestamp,current_timestamp
 
-races_df = races_df.withColumn('race_timestamp',to_timestamp(col('race_timestamp'),'yyyy-MM-dd HH:mm:ss'))
-races_df = races_df.withColumn('ingestion_date',current_timestamp())
+races_df = races_df.withColumn('race_timestamp',to_timestamp(col('race_timestamp'),'yyyy-MM-dd HH:mm:ss')).\
+    withColumn('data_source',lit(data_source))
+races_df = ingestion_date_col_addition(races_df)
 
 # COMMAND ----------
 
@@ -59,4 +79,12 @@ races_df = races_df.withColumn('ingestion_date',current_timestamp())
 
 # COMMAND ----------
 
-races_df.write.format('parquet').mode('overwrite').partitionBy('race_year').save('/mnt/azure_databricks_project_udemy/processed/races')
+races_df.write.format('parquet').mode('overwrite').partitionBy('race_year').save(f'{mnt_processed_folder_path}/races')
+
+# COMMAND ----------
+
+display(spark.read.parquet(f'{mnt_processed_folder_path}/races'))
+
+# COMMAND ----------
+
+dbutils.notebook.exit("Success")

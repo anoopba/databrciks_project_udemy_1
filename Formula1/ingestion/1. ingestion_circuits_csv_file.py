@@ -10,9 +10,17 @@
 
 # COMMAND ----------
 
+dbutils.widgets.text("data_source_parameter","")
+
+# COMMAND ----------
+
+data_source_variable = dbutils.widgets.get("data_source_parameter")
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC
-# MAGIC ##### Running configuration_variables and configurations_functions Notebook to access the variables and functions dynamically
+# MAGIC ##### STEP 0 : Running configuration_variables and configurations_functions Notebook to access the variables and functions dynamically
 
 # COMMAND ----------
 
@@ -21,11 +29,6 @@
 # COMMAND ----------
 
 # MAGIC %run "../child_notebook/configuration_functions"
-
-# COMMAND ----------
-
-mnt_raw_folder_path
-
 
 # COMMAND ----------
 
@@ -65,6 +68,12 @@ circuits_df = circuits_df.select(col("circuitId").alias("circuit_id"),col("circu
 
 # COMMAND ----------
 
+from pyspark.sql.functions import lit
+
+circuits_df = circuits_df.withColumn('data_source',lit(data_source_variable))
+
+# COMMAND ----------
+
 # MAGIC %md 
 # MAGIC
 # MAGIC #### 1.3 Addition of new column ingested_date to circuits.csv using ingestion_date_col_addition function from /child_notebook/configuration_functions notebook
@@ -87,4 +96,4 @@ circuits_final_df.write.format("parquet").mode("overwrite").save('/mnt/azure_dat
 
 # COMMAND ----------
 
-display(spark.read.parquet('/mnt/azure_databricks_project_udemy/processed/circuits'))
+dbutils.notebook.exit("Success")

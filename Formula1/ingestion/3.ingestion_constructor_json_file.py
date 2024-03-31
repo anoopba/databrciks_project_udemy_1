@@ -11,6 +11,29 @@ from pyspark.sql.functions import current_timestamp
 
 # MAGIC %md
 # MAGIC
+# MAGIC #### STEP 0: Trying to Fetch ingestion_date_col_addition() and variables in configuration_variables
+
+# COMMAND ----------
+
+# MAGIC %run "../child_notebook/configuration_functions"
+
+# COMMAND ----------
+
+# MAGIC %run "../child_notebook/configuration_variables"
+
+# COMMAND ----------
+
+dbutils.widgets.text("data_source_parameter","")
+data_source = dbutils.widgets.get("data_source_parameter")
+
+# COMMAND ----------
+
+from pyspark.sql.functions import lit
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
 # MAGIC ##### Step 1: Read the Json file Using the spark dataframe reader
 
 # COMMAND ----------
@@ -20,7 +43,7 @@ constructor_schema = 'constructorId INT,constructorRef STRING,name STRING,nation
 # COMMAND ----------
 
 constructor_df = spark.read.schema(constructor_schema)\
-    .json('/mnt/azure_databricks_project_udemy/raw/constructors.json')
+    .json(f'{mnt_raw_folder_path}/constructors.json')
 
 # COMMAND ----------
 
@@ -36,11 +59,11 @@ constructor_df = constructor_df.drop('url')
 
 constructor_df = constructor_df.withColumnRenamed('constructorId','constructor_id').\
     withColumnRenamed('constructorRef','constructor_ref').\
-        withColumn('ingested_date',current_timestamp())
+        withColumn('data_source',lit(data_source))
 
 # COMMAND ----------
 
-display(constructor_df)
+constructor_df = ingestion_date_col_addition(constructor_df)
 
 # COMMAND ----------
 
@@ -50,4 +73,12 @@ display(constructor_df)
 
 # COMMAND ----------
 
-constructor_df.write.format('parquet').mode('overwrite').save('/mnt/azure_databricks_project_udemy/processed/constructors')
+constructor_df.write.format('parquet').mode('overwrite').save(f'{mnt_processed_folder_path}/constructors')
+
+# COMMAND ----------
+
+display(spark.read.format(f'{mnt_processed_folder_path}/constructors'))
+
+# COMMAND ----------
+
+dbutils.notebook.exit("Sucess")

@@ -7,6 +7,25 @@
 
 # MAGIC %md
 # MAGIC
+# MAGIC #### STEP 0: Trying to Fetch ingestion_date_col_addition() and variables in configuration_variables
+
+# COMMAND ----------
+
+# MAGIC %run "../child_notebook/configuration_functions"
+
+# COMMAND ----------
+
+# MAGIC %run "../child_notebook/configuration_variables"
+
+# COMMAND ----------
+
+dbutils.widgets.text("data_source_parameter","")
+data_source = dbutils.widgets.get("data_source_parameter")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
 # MAGIC #### STEP 1: In driver Json file we have a nested data so we are creating two structfields.
 
 # COMMAND ----------
@@ -27,15 +46,7 @@ driver_schema = StructType(fields = [StructField("driverId",IntegerType(),False)
 # COMMAND ----------
 
 drivers_df = spark.read.schema(driver_schema).\
-    json('/mnt/azure_databricks_project_udemy/raw/drivers.json')
-
-# COMMAND ----------
-
-display(drivers_df)
-
-# COMMAND ----------
-
-drivers_df.printSchema()
+    json(f'{mnt_raw_folder_path}/drivers.json')
 
 # COMMAND ----------
 
@@ -52,7 +63,11 @@ drivers_df.printSchema()
 drivers_df = drivers_df.withColumnRenamed('driverId','driver_id').\
     withColumnRenamed('driverRef','driver_ref').\
         withColumn('name',concat(col('name.forename'),lit(" "),col('name.surname'))).\
-            withColumn('ingested_date',current_timestamp())
+            withColumn('data_source_parameter',lit(data_source))
+
+# COMMAND ----------
+
+drivers_df = ingestion_date_col_addition(drivers_df)
 
 # COMMAND ----------
 
@@ -72,8 +87,8 @@ drivers_df = drivers_df.drop('name.forename','name.surname')
 
 # COMMAND ----------
 
-drivers_df.write.format('parquet').mode('overwrite').save('/mnt/azure_databricks_project_udemy/processed/drivers')
+drivers_df.write.format('parquet').mode('overwrite').save(f'{mnt_processed_folder_path}/drivers')
 
 # COMMAND ----------
 
-display(spark.read.parquet('/mnt/azure_databricks_project_udemy/processed/drivers'))
+dbutils.notebook.exit("Success")
