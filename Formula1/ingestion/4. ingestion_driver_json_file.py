@@ -41,7 +41,8 @@ names_schema = StructType(fields = [StructField("forename",StringType(),True),St
 
 driver_schema = StructType(fields = [StructField("driverId",IntegerType(),False),StructField("driverRef",StringType(),True),\
     StructField("number",IntegerType(),True),StructField("code",StringType(),True),\
-        StructField("name",names_schema),StructField("dob",StringType(),True)])
+        StructField("name",names_schema),StructField("dob",StringType(),True),
+                           StructField("nationality",StringType(),True)])
 
 # COMMAND ----------
 

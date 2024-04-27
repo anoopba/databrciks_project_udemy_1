@@ -10,10 +10,6 @@
 
 # COMMAND ----------
 
-dbutils.widgets.text("data_source_parameter","")
-
-# COMMAND ----------
-
 data_source_variable = dbutils.widgets.get("data_source_parameter")
 
 # COMMAND ----------

@@ -35,6 +35,6 @@ spark.conf.set("fs.azure.account.oauth2.client.endpoint.anoopdbstorageacc.dfs.co
 
 df = spark.read.format('csv')\
     .option("header","true")\
-    .load("abfss://demo@anoopdbstorageacc.dfs.core.windows.net/circuits.csv")
+    .load("abfss://demo@anoopdbstorageac.dfs.core.windows.net/circuits.csv")
 
 display(df)

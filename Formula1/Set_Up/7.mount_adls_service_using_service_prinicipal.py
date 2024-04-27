@@ -33,6 +33,10 @@
 
 # COMMAND ----------
 
+# MAGIC %run "../child_notebook/configuration_variables"
+
+# COMMAND ----------
+
 #Instead of creating the dbutils.fs.mount again and again lets create a function where we can avoid the duplications 
 def mount_azure_folders(storage_account_name,container_name):
     service_credential = dbutils.secrets.get(scope = "storage_access_key_databricks_ui", key = "ADBClientpasswordorvalue")
@@ -53,32 +57,14 @@ def mount_azure_folders(storage_account_name,container_name):
 
 # COMMAND ----------
 
-mount_azure_folders(storage_account_name = "anoopdbstorageacc", container_name = "raw")
-mount_azure_folders(storage_account_name = "anoopdbstorageacc", container_name = "processed")
-mount_azure_folders(storage_account_name = "anoopdbstorageacc", container_name = "presentation")
-
-# COMMAND ----------
-
-configs = {"fs.azure.account.auth.type": "OAuth",
-          "fs.azure.account.oauth.provider.type": "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider",
-          "fs.azure.account.oauth2.client.id": client_id,
-          "fs.azure.account.oauth2.client.secret": service_credential,
-          "fs.azure.account.oauth2.client.endpoint": f"https://login.microsoftonline.com/{tenet_id}/oauth2/token"}
-
-# Optionally, you can add <directory-name> to the source URI of your mount point.
-dbutils.fs.mount(
-  source = "abfss://demo@anoopdbstorageacc.dfs.core.windows.net/",
-  mount_point = "/mnt/azure_databricks_project_udemy/demo",
-  extra_configs = configs)
+mount_azure_folders(storage_account_name = f"{storage_account_name}", container_name = "raw")
+mount_azure_folders(storage_account_name = f"{storage_account_name}", container_name = "processed")
+mount_azure_folders(storage_account_name = f"{storage_account_name}", container_name = "presentation")
 
 # COMMAND ----------
 
 #display(dbutils.fs.mounts())
 display(dbutils.fs.ls("/mnt/azure_databricks_project_udemy/"))
-
-# COMMAND ----------
-
-dbutils.fs.unmount('/mnt/azure_databricks_project_udemy/{container_name}')
 
 # COMMAND ----------
 
