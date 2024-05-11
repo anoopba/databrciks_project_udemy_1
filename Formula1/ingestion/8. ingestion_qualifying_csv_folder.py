@@ -68,7 +68,7 @@ qualifying_df = qualifying_df.withColumn('ingestion_date',current_timestamp())
 
 # COMMAND ----------
 
-qualifying_df.write.format('parquet').mode('overwrite').save(f'{mnt_processed_folder_path}/qualifying/')
+qualifying_df.write.format('parquet').mode('overwrite').saveAsTable('f1_processed.qualifying')
 
 # COMMAND ----------
 

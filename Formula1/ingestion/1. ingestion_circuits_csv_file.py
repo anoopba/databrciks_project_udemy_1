@@ -10,7 +10,13 @@
 
 # COMMAND ----------
 
+dbutils.widgets.text("data_source_parameter","testing")
 data_source_variable = dbutils.widgets.get("data_source_parameter")
+
+# COMMAND ----------
+
+dbutils.widgets.text("p_file_date","2021-03-21")
+w_file_date = dbutils.widgets.get("p_file_date")
 
 # COMMAND ----------
 
@@ -47,7 +53,7 @@ circuits_schema = StructType(fields=[StructField("circuitId",IntegerType(),False
 circuits_df = spark.read.format('csv').\
     option("header","true").\
         schema(circuits_schema).\
-        load(f"{mnt_raw_folder_path}/circuits.csv")
+        load(f"{mnt_raw_folder_path}/{w_file_date}/circuits.csv")
 
 # COMMAND ----------
 
@@ -66,7 +72,8 @@ circuits_df = circuits_df.select(col("circuitId").alias("circuit_id"),col("circu
 
 from pyspark.sql.functions import lit
 
-circuits_df = circuits_df.withColumn('data_source',lit(data_source_variable))
+circuits_df = circuits_df.withColumn('data_source',lit(data_source_variable))\
+    .withColumn('file_date',lit(w_file_date))
 
 # COMMAND ----------
 
@@ -88,7 +95,12 @@ circuits_final_df = ingestion_date_col_addition(circuits_df)
 
 # COMMAND ----------
 
-circuits_final_df.write.format("parquet").mode("overwrite").save('/mnt/azure_databricks_project_udemy/processed/circuits')
+circuits_final_df.write.format("parquet").mode("overwrite").saveAsTable('f1_processed.circuits')
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from f1_processed.circuits
 
 # COMMAND ----------
 

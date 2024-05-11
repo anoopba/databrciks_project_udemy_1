@@ -24,6 +24,11 @@ data_source = dbutils.widgets.get("data_source_parameter")
 
 # COMMAND ----------
 
+dbutils.widgets.text("p_date_file","2021-03-28")
+w_file_date = dbutils.widgets.get("2021-03-28")
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC
 # MAGIC #### STEP1 : Defining schema's for races csv and reading the races csv file and storing to a df
@@ -41,7 +46,7 @@ schema = StructType(fields=[StructField("raceId",IntegerType(),False),StructFiel
 races_df = spark.read.format('csv').\
     option('header','true').\
         schema(schema).\
-            load(f'{mnt_raw_folder_path}/races.csv')
+            load(f'{mnt_raw_folder_path}/{w_file_date}/races.csv')
 
 # COMMAND ----------
 
@@ -68,7 +73,8 @@ races_df = races_df.select(col('raceId').alias('race_id'),col('year').alias('rac
 from pyspark.sql.functions import col,date_format,lit,to_timestamp,current_timestamp
 
 races_df = races_df.withColumn('race_timestamp',to_timestamp(col('race_timestamp'),'yyyy-MM-dd HH:mm:ss')).\
-    withColumn('data_source',lit(data_source))
+    withColumn('data_source',lit(data_source))\
+        .withColumn('file_date',lit(w_file_date))
 races_df = ingestion_date_col_addition(races_df)
 
 # COMMAND ----------
@@ -79,11 +85,7 @@ races_df = ingestion_date_col_addition(races_df)
 
 # COMMAND ----------
 
-races_df.write.format('parquet').mode('overwrite').partitionBy('race_year').save(f'{mnt_processed_folder_path}/races')
-
-# COMMAND ----------
-
-display(spark.read.parquet(f'{mnt_processed_folder_path}/races'))
+races_df.write.format('parquet').mode('overwrite').partitionBy('race_year').saveAsTable('f1_processed.races')
 
 # COMMAND ----------
 

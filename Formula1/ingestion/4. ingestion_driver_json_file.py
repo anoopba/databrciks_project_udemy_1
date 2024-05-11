@@ -24,6 +24,11 @@ data_source = dbutils.widgets.get("data_source_parameter")
 
 # COMMAND ----------
 
+dbutils.widgets.text("p_file_date","")
+w_file_date = dbutils.widgets.get("p_file_date")
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC
 # MAGIC #### STEP 1: In driver Json file we have a nested data so we are creating two structfields.
@@ -64,7 +69,8 @@ drivers_df = spark.read.schema(driver_schema).\
 drivers_df = drivers_df.withColumnRenamed('driverId','driver_id').\
     withColumnRenamed('driverRef','driver_ref').\
         withColumn('name',concat(col('name.forename'),lit(" "),col('name.surname'))).\
-            withColumn('data_source_parameter',lit(data_source))
+            withColumn('data_source_parameter',lit(data_source)).\
+                withColumn('file_date',lit(w_file_date))
 
 # COMMAND ----------
 
@@ -88,7 +94,7 @@ drivers_df = drivers_df.drop('name.forename','name.surname')
 
 # COMMAND ----------
 
-drivers_df.write.format('parquet').mode('overwrite').save(f'{mnt_processed_folder_path}/drivers')
+drivers_df.write.format('parquet').mode('overwrite').saveAsTable('f1_processed.drivers')
 
 # COMMAND ----------
 

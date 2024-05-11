@@ -56,7 +56,7 @@ lap_times = ingestion_date_col_addition(lap_times)
 
 # COMMAND ----------
 
-lap_times.write.format('parquet').mode('overwrite').save(f'{mnt_processed_folder_path}/pit_stops')
+lap_times.write.format('parquet').mode('overwrite').saveAsTable('f1_processed.lap_times')
 
 # COMMAND ----------
 

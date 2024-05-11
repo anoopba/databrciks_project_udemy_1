@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC #### Constructor Standings
+# MAGIC #### Driver Standings
 
 # COMMAND ----------
 
@@ -24,7 +24,7 @@ final_result_df = spark.read.parquet(f"{mnt_presentation_folder_path}/race_resul
 # COMMAND ----------
 
 
-driver_standings_df = final_result_df.groupBy("race_year","team")\
+driver_standings_df = final_result_df.groupBy("race_year","driver_name","driver_nationality","team")\
     .agg(sum("points").alias("total_points"),\
         count(when(col('position') == 1,True)).alias('wins'))
 
@@ -41,4 +41,4 @@ driver_standings_df = driver_standings_df.withColumn('rank',rank().over(window_s
 
 # COMMAND ----------
 
-driver_standings_df.write.mode('overwrite').parquet(f"{mnt_presentation_folder_path}/constructor_standings")
+driver_standings_df.write.mode('overwrite').format('parquet').saveAsTable("f1_presentation.driver_standings")

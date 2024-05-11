@@ -24,6 +24,11 @@ data_source = dbutils.widgets.get("data_source_parameter")
 
 # COMMAND ----------
 
+dbutils.widgets.text("p_file_date","2021-03-21")
+w_file_date = dbutils.widgets.get("p_file_date")
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC
 # MAGIC #### STEP 1 : Creating schema and Reading Result json file fom sparkreader api
@@ -48,7 +53,11 @@ results_schema = StructType(fields = [StructField("resultId",IntegerType(),False
 
 result_df = spark.read.format('json').\
     schema(results_schema).\
-        load(f'{mnt_raw_folder_path}/results.json')
+        load(f'{mnt_raw_folder_path}/{w_file_date}/results.json')
+
+# COMMAND ----------
+
+result_df.createOrReplaceTempView('v_results')
 
 # COMMAND ----------
 
@@ -75,7 +84,8 @@ result_df = result_df.withColumnRenamed('resultId','result_id').withColumnRename
         .withColumnRenamed('positionText','position_text').withColumnRenamed('positionOrder','position_order')\
             .withColumnRenamed('fastestLap','fastest_lap').withColumnRenamed('fastestLapTime','fastest_lap_time')\
                 .withColumnRenamed('fastestLapSpeed','fastest_lap_speed').withColumnRenamed('statusId','status_id').\
-                    withColumn('data_source',lit(data_source))
+                    withColumn('data_source',lit(data_source))\
+                        .withColumn('file_date',lit(w_file_date))
 
 # COMMAND ----------
 
@@ -83,8 +93,14 @@ result_df = ingestion_date_col_addition(result_df)
 
 # COMMAND ----------
 
-result_df.write.format('parquet').mode('overwrite').partitionBy('race_id').save(f'{mnt_processed_folder_path}/results')
+overwrite_partition(result_df,'f1_processed','results','race_id')
 
 # COMMAND ----------
 
 dbutils.notebook.exit("Success")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select max(race_id) , min(race_id)
+# MAGIC from f1_processed.results

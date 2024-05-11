@@ -28,6 +28,11 @@ data_source = dbutils.widgets.get("data_source_parameter")
 
 # COMMAND ----------
 
+dbutils.widgets.text("p_file_date","2021-03-21")
+w_date_file = dbutils.widgets.get("p_file_date")
+
+# COMMAND ----------
+
 from pyspark.sql.functions import lit
 
 # COMMAND ----------
@@ -59,7 +64,8 @@ constructor_df = constructor_df.drop('url')
 
 constructor_df = constructor_df.withColumnRenamed('constructorId','constructor_id').\
     withColumnRenamed('constructorRef','constructor_ref').\
-        withColumn('data_source',lit(data_source))
+        withColumn('data_source',lit(data_source))\
+            .withColumn('file_date',lit(w_date_file))
 
 # COMMAND ----------
 
@@ -73,11 +79,7 @@ constructor_df = ingestion_date_col_addition(constructor_df)
 
 # COMMAND ----------
 
-constructor_df.write.format('parquet').mode('overwrite').save(f'{mnt_processed_folder_path}/constructors')
-
-# COMMAND ----------
-
-display(spark.read.format(f'{mnt_processed_folder_path}/constructors'))
+constructor_df.write.format('parquet').mode('overwrite').saveAsTable('f1_processed.constructors')
 
 # COMMAND ----------
 

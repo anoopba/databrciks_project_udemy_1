@@ -74,7 +74,7 @@ final_df = final_df.select("race_year","race_name","race_date","circuit_location
 
 # COMMAND ----------
 
-final_df.write.mode('overwrite').parquet(f"{mnt_presentation_folder_path}/race_results")
+final_df.write.mode('overwrite').format('parquet').saveAsTable("f1_presentation.race_results")
 
 # COMMAND ----------
 

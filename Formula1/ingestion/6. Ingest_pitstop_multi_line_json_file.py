@@ -63,7 +63,7 @@ pitstop_df = ingestion_date_col_addition(pitstop_df)
 
 # COMMAND ----------
 
-pitstop_df.write.format('parquet').mode('overwrite').save(f'{mnt_processed_folder_path}/pit_stops')
+pitstop_df.write.format('parquet').mode('overwrite').saveAsTable('f1_processed.pit_stops')
 
 # COMMAND ----------
 
