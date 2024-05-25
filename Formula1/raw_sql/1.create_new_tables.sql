@@ -4,7 +4,7 @@
 
 -- COMMAND ----------
 
-CREATE DATABASE IF NOT EXISTS f1_raw;
+CREATE DATABASE IF NOT EXISTS f1_raw;   
 
 -- COMMAND ----------
 
@@ -195,3 +195,7 @@ q3 STRING
 )
 USING JSON
 OPTIONS (path "/mnt/azure_databricks_project_udemy/raw/qualifying", multiLine true)
+
+-- COMMAND ----------
+
+hi
