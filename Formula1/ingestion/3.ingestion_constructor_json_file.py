@@ -28,7 +28,7 @@ data_source = dbutils.widgets.get("data_source_parameter")
 
 # COMMAND ----------
 
-dbutils.widgets.text("p_file_date","2021-03-21")
+dbutils.widgets.text("p_file_date","")
 w_date_file = dbutils.widgets.get("p_file_date")
 
 # COMMAND ----------
