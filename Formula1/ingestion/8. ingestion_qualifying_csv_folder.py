@@ -24,6 +24,11 @@ data_source = dbutils.widgets.get("data_source_parameter")
 
 # COMMAND ----------
 
+dbutils.widgets.text("p_file_date","2021-03-21")
+w_file_date = dbutils.widgets.get("p_file_date")
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC
 # MAGIC #### STEP 1 : Read the folder using spark read api with format csv
@@ -42,7 +47,7 @@ qualifying_schema = StructType(fields = [StructField("qualifyId",IntegerType(),T
 # COMMAND ----------
 
 qualifying_df = spark.read.format('json')\
-    .schema(qualifying_schema).option('multiLine','true').load(f'{mnt_raw_folder_path}/qualifying/')
+    .schema(qualifying_schema).option('multiLine','true').load(f'{mnt_raw_folder_path}/{w_file_date}/qualifying/')
 
 # COMMAND ----------
 
@@ -54,7 +59,8 @@ qualifying_df = spark.read.format('json')\
 
 qualifying_df = qualifying_df.withColumnRenamed('qualifyId','qualify_id').withColumnRenamed('raceId','race_id')\
     .withColumnRenamed('driverId','driver_id').withColumnRenamed('constructorId','constructor_id').\
-        withColumn("data_source",lit("data_source"))
+        withColumn("data_source",lit("data_source"))\
+            .withColumn('file_date',lit(w_file_date))
 
 # COMMAND ----------
 
@@ -68,7 +74,7 @@ qualifying_df = qualifying_df.withColumn('ingestion_date',current_timestamp())
 
 # COMMAND ----------
 
-qualifying_df.write.format('parquet').mode('overwrite').saveAsTable('f1_processed.qualifying')
+merge_delta_data(qualifying_df,'f1_processed','qualifying',"/mnt/azure_databricks_project_udemy/processed/qualifying","targetDF.qualify_id = input_df.qualify_id","race_id")
 
 # COMMAND ----------
 

@@ -52,7 +52,7 @@ driver_schema = StructType(fields = [StructField("driverId",IntegerType(),False)
 # COMMAND ----------
 
 drivers_df = spark.read.schema(driver_schema).\
-    json(f'{mnt_raw_folder_path}/drivers.json')
+    json(f'{mnt_raw_folder_path}/{w_file_date}/drivers.json')
 
 # COMMAND ----------
 
@@ -94,7 +94,7 @@ drivers_df = drivers_df.drop('name.forename','name.surname')
 
 # COMMAND ----------
 
-drivers_df.write.format('parquet').mode('overwrite').saveAsTable('f1_processed.drivers')
+drivers_df.write.format('delta').mode('overwrite').saveAsTable('f1_processed.drivers')
 
 # COMMAND ----------
 

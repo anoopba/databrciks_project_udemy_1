@@ -8,13 +8,17 @@
 
 # COMMAND ----------
 
+# MAGIC %run "../child_notebook/configuration_functions"
+
+# COMMAND ----------
+
 from pyspark.sql.functions import col,when,sum,count,lit,rank,desc
 from pyspark.sql.window import Window
 
 
 # COMMAND ----------
 
-final_result_df = spark.read.parquet(f"{mnt_presentation_folder_path}/race_results")
+final_result_df = spark.read.format('delta').load(f"{mnt_presentation_folder_path}/race_results")
 
 # COMMAND ----------
 
@@ -24,7 +28,7 @@ final_result_df = spark.read.parquet(f"{mnt_presentation_folder_path}/race_resul
 # COMMAND ----------
 
 
-driver_standings_df = final_result_df.groupBy("race_year","driver_name","driver_nationality","team")\
+driver_standings_df = final_result_df.groupBy("race_year","driver_name","driver_nationality")\
     .agg(sum("points").alias("total_points"),\
         count(when(col('position') == 1,True)).alias('wins'))
 
@@ -41,4 +45,4 @@ driver_standings_df = driver_standings_df.withColumn('rank',rank().over(window_s
 
 # COMMAND ----------
 
-driver_standings_df.write.mode('overwrite').format('parquet').saveAsTable("f1_presentation.driver_standings")
+merge_delta_data(driver_standings_df,'f1_presentation','driver_standings',f"{mnt_presentation_folder_path}/driver_standings","targetDF.driver_name = input_df.driver_name and targetDF.race_year = input_df.race_year","race_year")

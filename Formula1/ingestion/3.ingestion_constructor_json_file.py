@@ -48,7 +48,7 @@ constructor_schema = 'constructorId INT,constructorRef STRING,name STRING,nation
 # COMMAND ----------
 
 constructor_df = spark.read.schema(constructor_schema)\
-    .json(f'{mnt_raw_folder_path}/constructors.json')
+    .json(f'{mnt_raw_folder_path}/{w_date_file}/constructors.json')
 
 # COMMAND ----------
 
@@ -79,7 +79,7 @@ constructor_df = ingestion_date_col_addition(constructor_df)
 
 # COMMAND ----------
 
-constructor_df.write.format('parquet').mode('overwrite').saveAsTable('f1_processed.constructors')
+constructor_df.write.format('delta').mode('overwrite').saveAsTable('f1_processed.constructors')
 
 # COMMAND ----------
 

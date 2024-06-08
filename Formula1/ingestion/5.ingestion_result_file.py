@@ -93,14 +93,8 @@ result_df = ingestion_date_col_addition(result_df)
 
 # COMMAND ----------
 
-overwrite_partition(result_df,'f1_processed','results','race_id')
+merge_delta_data(result_df,'f1_processed','results',"/mnt/azure_databricks_project_udemy/processed/results","targetDF.result_id = input_df.result_id and targetDF.race_id = input_df.race_id","race_id")
 
 # COMMAND ----------
 
 dbutils.notebook.exit("Success")
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select max(race_id) , min(race_id)
-# MAGIC from f1_processed.results

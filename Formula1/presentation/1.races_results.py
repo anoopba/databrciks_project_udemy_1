@@ -14,35 +14,54 @@
 
 # COMMAND ----------
 
-from pyspark.sql.functions import current_timestamp
+# MAGIC %run "../child_notebook/configuration_functions"
 
 # COMMAND ----------
 
-races_df = spark.read.parquet('/mnt/azure_databricks_project_udemy/processed/races/')\
+from pyspark.sql.functions import current_timestamp,lit
+
+# COMMAND ----------
+
+dbutils.widgets.text("p_file_date","2021-03-21")
+w_file_date = dbutils.widgets.get("p_file_date")
+
+# COMMAND ----------
+
+races_df = spark.read.format('delta')\
+    .load(f'{mnt_processed_folder_path}/races/')\
     .withColumnRenamed('name','race_name')\
         .withColumnRenamed('race_timestamp','race_date')
+            
 
 # COMMAND ----------
 
-circuits_df = spark.read.parquet('/mnt/azure_databricks_project_udemy/processed/circuits/')\
-    .withColumnRenamed('location','circuit_location')
+circuits_df = spark.read.format('delta')\
+        .load(f'{mnt_processed_folder_path}/circuits/')\
+            .withColumnRenamed('location','circuit_location')
+        
 
 # COMMAND ----------
 
-drivers_df = spark.read.parquet('/mnt/azure_databricks_project_udemy/processed/drivers/')\
+drivers_df = spark.read.format('delta')\
+    .load(f'{mnt_processed_folder_path}/drivers/')\
     .withColumnRenamed('name','driver_name')\
         .withColumnRenamed('number','driver_number')\
             .withColumnRenamed('nationality','driver_nationality')
+                
 
 # COMMAND ----------
 
-constructors_df = spark.read.parquet('/mnt/azure_databricks_project_udemy/processed/constructors/')\
+constructors_df = spark.read.format('delta')\
+    .load(f'{mnt_processed_folder_path}/constructors/')\
     .withColumnRenamed('name','team')
+        
 
 # COMMAND ----------
 
-results_df = spark.read.parquet('/mnt/azure_databricks_project_udemy/processed/results/')\
+results_df = spark.read.format('delta')\
+    .load(f'{mnt_processed_folder_path}/results/')\
     .withColumnRenamed('time','race_time')
+        
 
 # COMMAND ----------
 
@@ -62,20 +81,25 @@ races_circuits_join = races_df.join(circuits_df,(races_df['circuit_id'] == circu
 
 # COMMAND ----------
 
-final_df = results_df.join(races_circuits_join,(results_df['race_id'] == races_circuits_join['race_id']),'inner')\
+races_circuits_join = races_circuits_join.withColumnRenamed('race_id','races_circuits_race_id')
+
+# COMMAND ----------
+
+final_df = results_df.join(races_circuits_join,(results_df['race_id'] == races_circuits_join['races_circuits_race_id']),'inner')\
     .join(drivers_df,(results_df['driver_id'] == drivers_df['driver_id']),'inner')\
         .join(constructors_df,(results_df['constructor_id'] == constructors_df['constructor_id']),'inner')
 
 
 # COMMAND ----------
 
-final_df = final_df.select("race_year","race_name","race_date","circuit_location","driver_name","driver_number","driver_nationality","team","grid","fastest_lap","race_time","points","position").\
-    withColumn('created_date',current_timestamp())
+final_df = final_df.select('race_id',"race_year","race_name","race_date","circuit_location","driver_name","driver_number","driver_nationality","team","grid","fastest_lap","race_time","points","position").\
+    withColumn('created_date',current_timestamp())\
+        .withColumn('result_file_date',lit(w_file_date))
 
 # COMMAND ----------
 
-final_df.write.mode('overwrite').format('parquet').saveAsTable("f1_presentation.race_results")
+merge_delta_data(final_df,'f1_presentation','race_results',f"{mnt_presentation_folder_path}/race_results","targetDF.driver_name = input_df.driver_name and targetDF.race_id = input_df.race_id","race_id")
 
 # COMMAND ----------
 
-display(spark.read.parquet(f"{mnt_presentation_folder_path}/race_results"))
+display(spark.read.format('delta').load(f"{mnt_presentation_folder_path}/race_results"))

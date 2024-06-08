@@ -18,6 +18,11 @@ data_source = dbutils.widgets.get("data_source_parameter")
 
 # COMMAND ----------
 
+dbutils.widgets.text("p_file_date","2021-03-21")
+w_file_date = dbutils.widgets.get("p_file_date")
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC
 # MAGIC ### 6. Ingest Pitstop Json file
@@ -37,7 +42,7 @@ pitstop_schema = StructType(fields = [StructField("raceId",IntegerType(),False),
 
 pitstop_df = spark.read.format('json').schema(pitstop_schema)\
     .option('multiLine','true')\
-    .load(f'{mnt_raw_folder_path}/pit_stops.json')
+    .load(f'{mnt_raw_folder_path}/{w_file_date}/pit_stops.json')
 
 # COMMAND ----------
 
@@ -49,7 +54,8 @@ pitstop_df = spark.read.format('json').schema(pitstop_schema)\
 
 pitstop_df = pitstop_df.withColumnRenamed('raceId','race_id')\
     .withColumnRenamed('driverId','driver_id').\
-        withColumn('data_source',lit(data_source))
+        withColumn('data_source',lit(data_source))\
+            .withColumn('file_date',lit(w_file_date))
 
 # COMMAND ----------
 
@@ -63,7 +69,7 @@ pitstop_df = ingestion_date_col_addition(pitstop_df)
 
 # COMMAND ----------
 
-pitstop_df.write.format('parquet').mode('overwrite').saveAsTable('f1_processed.pit_stops')
+merge_delta_data(pitstop_df,'f1_processed','pit_stops',"/mnt/azure_databricks_project_udemy/processed/pit_stops","targetDF.race_id = input_df.race_id and targetDF.driver_id = input_df.driver_id and targetDF.stop = input_df.stop","race_id")
 
 # COMMAND ----------
 

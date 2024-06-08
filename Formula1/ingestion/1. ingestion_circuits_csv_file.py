@@ -15,7 +15,7 @@ data_source_variable = dbutils.widgets.get("data_source_parameter")
 
 # COMMAND ----------
 
-dbutils.widgets.text("p_file_date","")
+dbutils.widgets.text("p_file_date","2021-03-21")
 w_file_date = dbutils.widgets.get("p_file_date")
 
 # COMMAND ----------
@@ -95,7 +95,7 @@ circuits_final_df = ingestion_date_col_addition(circuits_df)
 
 # COMMAND ----------
 
-circuits_final_df.write.format("parquet").mode("overwrite").saveAsTable('f1_processed.circuits')
+circuits_final_df.write.format("delta").mode("overwrite").saveAsTable('f1_processed.circuits')
 
 # COMMAND ----------
 

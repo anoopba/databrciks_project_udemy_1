@@ -8,13 +8,17 @@
 
 # COMMAND ----------
 
+# MAGIC %run "../child_notebook/configuration_functions"
+
+# COMMAND ----------
+
 from pyspark.sql.functions import col,when,sum,count,lit,rank,desc
 from pyspark.sql.window import Window
 
 
 # COMMAND ----------
 
-final_result_df = spark.read.parquet(f"{mnt_presentation_folder_path}/race_results")
+final_result_df = spark.read.format('delta').load(f"{mnt_presentation_folder_path}/race_results")
 
 # COMMAND ----------
 
@@ -41,4 +45,4 @@ driver_standings_df = driver_standings_df.withColumn('rank',rank().over(window_s
 
 # COMMAND ----------
 
-driver_standings_df.write.mode('overwrite').format('parquet').saveAsTable("f1_presentation.constructor_standings")
+merge_delta_data(driver_standings_df,'f1_presentation','constructor_standings',f"{mnt_presentation_folder_path}/driver_standings","targetDF.team = input_df.team and targetDF.race_year = input_df.team","race_year")

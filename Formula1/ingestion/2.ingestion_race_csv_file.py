@@ -24,7 +24,7 @@ data_source = dbutils.widgets.get("data_source_parameter")
 
 # COMMAND ----------
 
-dbutils.widgets.text("p_date_file","")
+dbutils.widgets.text("p_date_file","2021-03-21")
 w_file_date = dbutils.widgets.get("p_date_file")
 
 # COMMAND ----------
@@ -85,7 +85,7 @@ races_df = ingestion_date_col_addition(races_df)
 
 # COMMAND ----------
 
-races_df.write.format('parquet').mode('overwrite').partitionBy('race_year').saveAsTable('f1_processed.races')
+races_df.write.format('delta').mode('overwrite').partitionBy('race_year').saveAsTable('f1_processed.races')
 
 # COMMAND ----------
 
